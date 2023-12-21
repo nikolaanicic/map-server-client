@@ -4,6 +4,8 @@
 #define _KEY_IDX_ (2)
 #define _DATA_IDX_ (3)
 #define _DATA_TYPE_IDX_ (4)
+#define _GET_REQ_PARAM_LEN (3)
+#define _PUT_REQ_PARAM_LEN (5)
 
 request *parse_get_request(char **argv)
 {
@@ -67,7 +69,7 @@ request *parse_put_request(char **argv)
 
 request *parse_cmd_args(int argc, char **argv)
 {
-	if (argc != 3 && argc != 5)
+	if (argc != _GET_REQ_PARAM_LEN && argc != _PUT_REQ_PARAM_LEN)
 	{
 		printf("\nusage:");
 		printf("\nget request: client GET KEY");
@@ -78,9 +80,9 @@ request *parse_cmd_args(int argc, char **argv)
 
 	request *rq = NULL;
 
-	if (argc == 3)
+	if (argc == _GET_REQ_PARAM_LEN)
 		rq = parse_get_request(argv);
-	else if (argc == 5)
+	else if (argc == _PUT_REQ_PARAM_LEN)
 		rq = parse_put_request(argv);
 
 	return rq;

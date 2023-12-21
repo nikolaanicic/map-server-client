@@ -18,7 +18,6 @@ entries *new_entries(unsigned long initial_capacity)
 
 void expand(entries *entries)
 {
-
     entries->items = (store_item **)realloc(entries->items, sizeof(store_item *) * entries->capacity * __ARRAY_RESIZE_FACTOR__);
     entries->capacity = entries->capacity * __ARRAY_RESIZE_FACTOR__;
 }
@@ -30,10 +29,7 @@ void replace_or_insert(entries *entries, store_item *item, unsigned long index)
         return;
 
     if (entries->items[index])
-    {
-        // free_store_item(&(entries->items[index]));
         entries->items[index] = item;
-    }
     else
     {
         entries->items[index] = item;

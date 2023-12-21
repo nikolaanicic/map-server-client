@@ -13,7 +13,7 @@ void sigintHandler(int signum)
 	stop = 1;
 }
 
-server *new_server(char *endpoint, int port, key_value_store *store)
+server *new_server(char *endpoint, int port, key_value_store *store, int enable_logging)
 {
 	if (endpoint == NULL || strcmp(endpoint, "") == 0)
 	{
@@ -47,6 +47,7 @@ server *new_server(char *endpoint, int port, key_value_store *store)
 	srv->server_address.sin_family = AF_INET;
 	srv->server_address.sin_addr.s_addr = INADDR_ANY;
 	srv->server_address.sin_port = htons(port);
+	srv->enable_logging = enable_logging;
 
 	if (bind(srv->server_socket, (struct sockaddr *)&srv->server_address, sizeof(srv->server_address)) < 0)
 	{
@@ -97,6 +98,8 @@ request *receive_request(int socket)
 		return NULL;
 	}
 
+	log_msg(INFO, "received a request %d", 1);
+
 	return deserialize_request(buf);
 }
 
@@ -140,6 +143,8 @@ void worker_func(server *server, int new_connection_socket)
 		debug_print("\ngot null response");
 		return;
 	}
+
+	print_entries(server->store->entries);
 
 	write_response(new_connection_socket, response);
 
@@ -213,7 +218,7 @@ void free_server(server **server)
 
 response *handle_put(server *server, request *request)
 {
-	if (server == NULL || response == NULL)
+	if (server == NULL || request == NULL)
 		return NULL;
 
 	put_item(server->store, request->rq_data.put_rq.item, request->rq_data.put_rq.key);

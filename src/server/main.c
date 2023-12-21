@@ -9,7 +9,7 @@ int main()
 	char *endpoint = "127.0.0.1";
 	int port = 8080;
 
-	server *server = new_server(endpoint, port, store);
+	server *server = new_server(endpoint, port, store, 1);
 
 	if (server == NULL)
 	{
