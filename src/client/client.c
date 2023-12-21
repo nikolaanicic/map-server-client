@@ -11,7 +11,7 @@ void free_client(client **client)
 	*client = NULL;
 }
 
-static int open_connection(client *client)
+int open_connection(client *client)
 {
 	if ((connect(client->conn, (struct sockaddr *)&client->server_addr, sizeof(client->server_addr))) < 0)
 	{
@@ -22,60 +22,39 @@ static int open_connection(client *client)
 	return 1;
 }
 
-void send_req(client *client, request *request)
+int send_request(client *client, request *request)
 {
-
-	if (client == NULL || request == NULL)
-		return;
-
-	if (client == NULL)
-	{
-		debug_print("\nclient is NULL");
-		return;
-	}
-
-	if (request == NULL)
-	{
-		debug_print("\nrequest is NULL");
-		return;
-	}
-
-	if (!open_connection(client))
-	{
-		debug_print("\ncan't open a connection");
-		return;
-	}
-
 	int buf_len = 0;
 	char *serialized_request = serialize_request(request, &buf_len);
 
 	if (serialize_request == NULL)
-		return;
+		return 0;
 
 	print_request(request);
 
 	if ((write(client->conn, serialized_request, buf_len)) < 0)
 	{
 		debug_print("\nerror in send request");
-		return;
+		return 0;
 	}
 
 	free(serialized_request);
 	serialized_request = NULL;
 
+	return 1;
+}
+
+response *receive_response(client *client)
+{
 	char buf[BUFFER_LENGTH];
 	memset(buf, 0, BUFFER_LENGTH);
 	if ((read(client->conn, buf, BUFFER_LENGTH)) == -1)
 	{
 		debug_print("\ninvalid read");
-		return;
+		return NULL;
 	}
 
-	response *response = deserialize_response(buf);
-
-	print_response(response);
-
-	free_response(&response);
+	return deserialize_response(buf);
 }
 
 client *new_client(const char *server_ip, int server_port)

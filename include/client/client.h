@@ -4,6 +4,7 @@
 #include "../common/map/item/item.h"
 #include "../common/network/request_type.h"
 #include "../common/network/request.h"
+#include "../common/network/response.h"
 #include "../common/network/buffer.h"
 #include "../common/debug/trace.h"
 
@@ -21,7 +22,9 @@ typedef struct __client__
 	int conn;
 } client;
 
-void send_req(client *client, request *request);
+int send_request(client *client, request *request);
+response *receive_response(client *client);
+int open_connection(client *client);
 
 client *new_client(const char *server_ip, int server_port);
 

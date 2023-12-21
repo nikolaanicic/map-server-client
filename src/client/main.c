@@ -23,8 +23,24 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	send_req(client, req);
+	if (!open_connection(client))
+		return EXIT_FAILURE;
+
+	if (!send_request(client, req))
+		return EXIT_FAILURE;
+
+	response *response = receive_response(client);
+
+	if (response == NULL)
+	{
+		free_request(&req);
+		free_client(&client);
+		return EXIT_FAILURE;
+	}
+
+	print_response(response);
 
 	free_request(&req);
 	free_client(&client);
+	free_response(&response);
 }
