@@ -14,38 +14,38 @@ char *serialize_put_request(request *request, int *size)
 
 	int data_size = 0;
 
-	switch (req.item.type)
+	switch (req.item->type)
 	{
 	case STRING:
-		data_size = strlen(req.item.data->s);
+		data_size = strlen(req.item->data->s);
 		break;
 	case DOUBLE:
-		data_size = sizeof(req.item.data->d);
+		data_size = sizeof(req.item->data->d);
 		break;
 	case LONG_LONG:
-		data_size = sizeof(req.item.data->l);
+		data_size = sizeof(req.item->data->l);
 		break;
 	}
 
-	*size = request_type_size + int_size + keylen + item_type_size + data_size + int_size;
+	*size = request_type_size + int_size + keylen + item_type_size + data_size + int_size + 1;
 	char *buffer = malloc(sizeof(char) * (*size));
 
 	memcpy(buffer, &type, request_type_size);
 	memcpy(&buffer[request_type_size], &keylen, int_size);
 	memcpy(&buffer[request_type_size + int_size], req.key, sizeof(char) * keylen);
-	memcpy(&buffer[request_type_size + keylen + int_size], &req.item.type, item_type_size);
+	memcpy(&buffer[request_type_size + keylen + int_size], &req.item->type, item_type_size);
 	memcpy(&buffer[request_type_size + int_size + keylen + item_type_size], &data_size, int_size);
 
-	switch (req.item.type)
+	switch (req.item->type)
 	{
 	case STRING:
-		strcpy(&buffer[request_type_size + int_size + keylen + item_type_size + int_size], req.item.data->s);
+		strcpy(&buffer[request_type_size + int_size + keylen + item_type_size + int_size], req.item->data->s);
 		break;
 	case DOUBLE:
-		memcpy(&buffer[request_type_size + int_size + keylen + item_type_size + int_size], &req.item.data->d, data_size);
+		memcpy(&buffer[request_type_size + int_size + keylen + item_type_size + int_size], &req.item->data->d, data_size);
 		break;
 	case LONG_LONG:
-		memcpy(&buffer[request_type_size + int_size + keylen + item_type_size + int_size], &req.item.data->l, data_size);
+		memcpy(&buffer[request_type_size + int_size + keylen + item_type_size + int_size], &req.item->data->l, data_size);
 		break;
 	}
 
@@ -54,6 +54,10 @@ char *serialize_put_request(request *request, int *size)
 
 void print_buffer(char *buffer, int length)
 {
+
+	if (buffer == NULL)
+		return;
+
 	printf("\n");
 	for (int i = 0; i < length - 1; i += 2)
 	{
@@ -123,7 +127,7 @@ char *serialize_response(response *response, int *size)
 		}
 
 		*size = status_size + request_type_size + data_size + data_type_size + int_size;
-		buffer = realloc(buffer, sizeof(char) * (*size));
+		buffer = realloc(buffer, sizeof(char) * (*size) + 1);
 
 		memcpy(&buffer[status_size + request_type_size], &response->item->type, data_type_size);
 		memcpy(&buffer[status_size + request_type_size + data_type_size], &data_size, int_size);
@@ -159,6 +163,9 @@ request *deserialize_get_request(char *buffer)
 
 request *deserialize_put_request(char *buffer)
 {
+	if (buffer == NULL)
+		return NULL;
+
 	int keylen = 0;
 	memcpy(&keylen, &buffer[sizeof(request_type)], sizeof(int));
 
@@ -223,6 +230,9 @@ request *deserialize_request(char *buffer)
 
 response *deserialize_response(char *buffer)
 {
+	if (buffer == NULL)
+		return NULL;
+
 	int status_size = sizeof(status);
 	int request_type_size = sizeof(request_type);
 	int data_type_size = sizeof(item_type);

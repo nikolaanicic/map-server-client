@@ -14,7 +14,7 @@ typedef struct __get_reqeust__
 typedef struct __put_request__
 {
 	char *key;
-	store_item item;
+	store_item *item;
 } put_request;
 
 typedef union __rq_data__
@@ -30,7 +30,7 @@ typedef struct __request__
 } request;
 
 request *new_get_request(char *key);
-request *new_put_request(const store_item *item, char *key);
+request *new_put_request(store_item *item, char *key);
 
 void print_request(const request *request);
 void free_request(request **request);

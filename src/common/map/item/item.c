@@ -38,22 +38,24 @@ store_item *new_string_item(char *data)
 
 void free_store_item(store_item **item)
 {
-    if (*item == NULL)
+    if ((*item) == NULL)
         return;
 
-    free_item_data(&((*item)->data));
-    free(*item);
+    if ((*item)->data)
+        free_item_data(&((*item)->data), (*item)->type == STRING);
 
+    free(*item);
     *item = NULL;
 }
 
 void print_item(const store_item *item)
 {
-    if (item == NULL)
+    if (item == NULL || item->data == NULL)
     {
         debug_print("\nitem is NULL");
         return;
     }
+
     printf("\n");
     switch (item->type)
     {
@@ -70,4 +72,5 @@ void print_item(const store_item *item)
         printf("(unknown data)");
         break;
     }
+    printf("\n");
 }

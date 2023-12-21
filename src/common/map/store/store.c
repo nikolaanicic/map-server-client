@@ -17,6 +17,8 @@ void free_key_value_store(key_value_store **store)
         return;
 
     free_entries(&((*store)->entries));
+
+    free(*store);
     *store = NULL;
 }
 

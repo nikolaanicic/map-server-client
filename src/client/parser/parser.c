@@ -30,13 +30,23 @@ store_item *parse_put_data(item_type type, char *data)
 
 request *parse_put_request(char **argv)
 {
+	int keylen = strlen(argv[_KEY_IDX_]) + 1;
+	int datalen = strlen(argv[_DATA_IDX_]) + 1;
+	int datatypelen = strlen(argv[_DATA_TYPE_IDX_]) + 1;
 
-	char *key_str = argv[_KEY_IDX_];
-	char *data_str = argv[_DATA_IDX_];
-	char *data_type_str = argv[_DATA_TYPE_IDX_];
+	char *key_str = malloc(sizeof(char) * keylen);
+	char *data_str = malloc(sizeof(char) * datalen);
+	char *data_type_str = malloc(sizeof(char) * datatypelen);
+
+	strcpy(key_str, argv[_KEY_IDX_]);
+	strcpy(data_str, argv[_DATA_IDX_]);
+	strcpy(data_type_str, argv[_DATA_TYPE_IDX_]);
 
 	int valid_item_type = 0;
 	item_type it_type = str_to_item_type(data_type_str, &valid_item_type);
+
+	free(data_type_str);
+	data_type_str = NULL;
 
 	if (valid_item_type == 0)
 	{

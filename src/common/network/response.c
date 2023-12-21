@@ -5,26 +5,14 @@ response *alloc_response()
 	return (response *)malloc(sizeof(response));
 }
 
-response *new_response(status status, const store_item *item, request_type request_type)
+response *new_response(status status, store_item *item, request_type request_type)
 {
 	response *rsp = alloc_response();
 	rsp->status = status;
 
 	if (item)
 	{
-		switch (item->type)
-		{
-		case STRING:
-			rsp->item = new_string_item(item->data->s);
-			break;
-		case DOUBLE:
-			rsp->item = new_double_item(item->data->d);
-			break;
-		case LONG_LONG:
-			rsp->item = new_long_long_item(item->data->l);
-			break;
-		}
-
+		rsp->item = item;
 		rsp->item->type = item->type;
 		rsp->request_type = request_type;
 	}
@@ -62,6 +50,9 @@ void free_response(response **response)
 {
 	if (*response == NULL)
 		return;
+
+	if ((*response)->item)
+		free_store_item(&((*response)->item));
 
 	free(*response);
 	*response = NULL;

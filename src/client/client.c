@@ -25,6 +25,9 @@ static int open_connection(client *client)
 void send_req(client *client, request *request)
 {
 
+	if (client == NULL || request == NULL)
+		return;
+
 	if (client == NULL)
 	{
 		debug_print("\nclient is NULL");
@@ -45,6 +48,10 @@ void send_req(client *client, request *request)
 
 	int buf_len = 0;
 	char *serialized_request = serialize_request(request, &buf_len);
+
+	if (serialize_request == NULL)
+		return;
+
 	print_request(request);
 
 	if ((write(client->conn, serialized_request, buf_len)) < 0)
@@ -57,6 +64,7 @@ void send_req(client *client, request *request)
 	serialized_request = NULL;
 
 	char buf[BUFFER_LENGTH];
+	memset(buf, 0, BUFFER_LENGTH);
 	if ((read(client->conn, buf, BUFFER_LENGTH)) == -1)
 	{
 		debug_print("\ninvalid read");
@@ -67,8 +75,7 @@ void send_req(client *client, request *request)
 
 	print_response(response);
 
-	free(response);
-	response = NULL;
+	free_response(&response);
 }
 
 client *new_client(const char *server_ip, int server_port)

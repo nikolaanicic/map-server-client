@@ -14,11 +14,10 @@ void populate_get_request(request *request, char *key)
 	request->rq_data.get_rq.key = key;
 }
 
-void populate_put_request(request *request, const store_item *item, char *key)
+void populate_put_request(request *request, store_item *item, char *key)
 {
 	request->rq_data.put_rq.key = key;
-	request->rq_data.put_rq.item.type = item->type;
-	request->rq_data.put_rq.item.data = item->data;
+	request->rq_data.put_rq.item = item;
 }
 
 request *new_get_request(char *key)
@@ -34,7 +33,7 @@ request *new_get_request(char *key)
 	return rq;
 }
 
-request *new_put_request(const store_item *item, char *key)
+request *new_put_request(store_item *item, char *key)
 {
 	request *rq = alloc_req();
 
@@ -44,11 +43,32 @@ request *new_put_request(const store_item *item, char *key)
 	return rq;
 }
 
+void free_get_reqeust(request **request)
+{
+	free((*request)->rq_data.get_rq.key);
+	(*request)->rq_data.get_rq.key = NULL;
+}
+
+void free_put_request(request **request)
+{
+
+	free((*request)->rq_data.put_rq.key);
+	(*request)->rq_data.put_rq.key = NULL;
+
+	if ((*request)->rq_data.put_rq.item)
+		free_store_item(&((*request)->rq_data.put_rq.item));
+}
+
 void free_request(request **request)
 {
 
 	if (*request == NULL)
 		return;
+
+	if ((*request)->type == GET)
+		free_get_reqeust(request);
+	else
+		free_put_request(request);
 
 	free(*request);
 	*request = NULL;
@@ -66,7 +86,7 @@ void print_request(const request *request)
 	else if (request->type == PUT)
 	{
 		printf("\n\tKEY: [%s] ->", request->rq_data.put_rq.key);
-		print_item(&request->rq_data.put_rq.item);
+		print_item(request->rq_data.put_rq.item);
 	}
 	printf("-----------------\n");
 }

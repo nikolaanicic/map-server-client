@@ -11,6 +11,7 @@ entries *new_entries(unsigned long initial_capacity)
     new_entries->max_occupied_index = __DEFAULT_MAX_INDEX__;
 
     new_entries->items = (store_item **)malloc(sizeof(store_item *) * initial_capacity);
+    memset(new_entries->items, 0, sizeof(store_item *) * initial_capacity);
 
     return new_entries;
 }
@@ -24,6 +25,10 @@ void expand(entries *entries)
 
 void replace_or_insert(entries *entries, store_item *item, unsigned long index)
 {
+
+    if (entries == NULL || entries->items == NULL || item == NULL)
+        return;
+
     if (entries->items[index])
     {
         // free_store_item(&(entries->items[index]));

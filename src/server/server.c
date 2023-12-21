@@ -39,7 +39,7 @@ server *new_server(char *endpoint, int port, key_value_store *store)
 
 	srv->server_socket = sck;
 
-	srv->endpoint = (char *)malloc(sizeof(char) * strlen(endpoint));
+	srv->endpoint = malloc(sizeof(char) * strlen(endpoint) + 1);
 	strcpy(srv->endpoint, endpoint);
 
 	srv->store = store;
@@ -68,7 +68,11 @@ void worker_func()
 void spawn_worker(server *server, int new_connection_socket)
 {
 
+	if (server == NULL)
+		return;
+
 	char buf[BUFFER_LENGTH];
+	memset(buf, 0, BUFFER_LENGTH);
 
 	if ((read(new_connection_socket, buf, BUFFER_LENGTH)) == -1)
 	{
@@ -76,7 +80,6 @@ void spawn_worker(server *server, int new_connection_socket)
 		return;
 	}
 
-	print_buffer(buf, 30);
 	request *rq = deserialize_request(buf);
 
 	if (rq == NULL)
@@ -95,8 +98,17 @@ void spawn_worker(server *server, int new_connection_socket)
 
 	print_key_value_store(server->store);
 
+	if (response == NULL)
+		return;
+
 	int buff_len = 0;
 	char *serialized = serialize_response(response, &buff_len);
+
+	if (serialized == NULL)
+	{
+		debug_print("\nserialized reqeust is null");
+		return;
+	}
 
 	if ((write(new_connection_socket, serialized, buff_len)) < 0)
 	{
@@ -106,6 +118,21 @@ void spawn_worker(server *server, int new_connection_socket)
 
 	free(serialized);
 	serialized = NULL;
+
+	if (rq->type == GET)
+	{
+		free(rq->rq_data.get_rq.key);
+		rq->rq_data.get_rq.key = NULL;
+	}
+	else
+	{
+		free(rq->rq_data.put_rq.key);
+		rq->rq_data.put_rq.key = NULL;
+	}
+	free(rq);
+	rq = NULL;
+	free(response);
+	response = NULL;
 
 	// worker_func();
 }
@@ -127,7 +154,7 @@ void run(server *server)
 	printf("\npress (CTRL+C) to stop the server");
 	fflush(stdout);
 
-	while (!stop)
+	// while (!stop)
 	{
 
 		int new_conn = accept(server->server_socket, (struct sockaddr *)&cliaddr, &cliaddrlen);
@@ -135,7 +162,7 @@ void run(server *server)
 		if (new_conn == -1)
 		{
 			debug_print("\ninvalid connection");
-			continue;
+			// continue;
 		}
 		printf("\n[ACCEPTED A CONNECTION] (%s:%d)", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
 
@@ -158,17 +185,17 @@ void free_server(server **server)
 	free((*server)->endpoint);
 	(*server)->endpoint = NULL;
 
+	free_key_value_store(&(*server)->store);
+
 	free(*server);
 	*server = NULL;
 }
 
 response *handle_put(server *server, request *request)
 {
-	store_item *item = &request->rq_data.put_rq.item;
+	put_item(server->store, request->rq_data.put_rq.item, request->rq_data.put_rq.key);
 
-	put_item(server->store, item, request->rq_data.put_rq.key);
-
-	return new_response(OK, &request->rq_data.put_rq.item, request->type);
+	return new_response(OK, request->rq_data.put_rq.item, request->type);
 }
 
 response *handle_get(server *server, request *request)

@@ -15,6 +15,6 @@ item_data *new_double_data(double data);
 item_data *new_long_long_data(long long data);
 item_data *new_string_data(char *data);
 
-void free_item_data(item_data **data);
+void free_item_data(item_data **data, int free_char);
 
 #endif

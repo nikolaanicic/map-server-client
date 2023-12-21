@@ -31,10 +31,22 @@ item_data *new_string_data(char *data)
 	return item;
 }
 
-void free_item_data(item_data **data)
+void free_item_data_char(item_data **data)
+{
+	if ((*data)->s)
+	{
+		free((*data)->s);
+		(*data)->s = NULL;
+	}
+}
+
+void free_item_data(item_data **data, int free_char)
 {
 	if (*data == NULL)
 		return;
+
+	if (free_char)
+		free_item_data_char(data);
 
 	free(*data);
 	*data = NULL;
