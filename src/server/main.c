@@ -21,7 +21,6 @@ int main()
 	run(server);
 
 	free_server(&server);
-	printf("\nstopped");
 
 	return 0;
 }

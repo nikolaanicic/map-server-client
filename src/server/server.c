@@ -60,47 +60,13 @@ server *new_server(char *endpoint, int port, key_value_store *store)
 	return srv;
 }
 
-void worker_func()
+response *handle_request(server *server, request *request)
 {
-	debug_print("\nWORKER_FUNC NOT IMPLEMENTED");
+	return request->type == PUT ? handle_put(server, request) : handle_get(server, request);
 }
 
-void spawn_worker(server *server, int new_connection_socket)
+void write_response(int socket, response *response)
 {
-
-	if (server == NULL)
-		return;
-
-	char buf[BUFFER_LENGTH];
-	memset(buf, 0, BUFFER_LENGTH);
-
-	if ((read(new_connection_socket, buf, BUFFER_LENGTH)) == -1)
-	{
-		debug_print("\ninvalid read");
-		return;
-	}
-
-	request *rq = deserialize_request(buf);
-
-	if (rq == NULL)
-	{
-		debug_print("\ngot null request");
-		return;
-	}
-
-	print_request(rq);
-
-	response *response = NULL;
-	if (rq->type == PUT)
-		response = handle_put(server, rq);
-	else if (rq->type == GET)
-		response = handle_get(server, rq);
-
-	print_key_value_store(server->store);
-
-	if (response == NULL)
-		return;
-
 	int buff_len = 0;
 	char *serialized = serialize_response(response, &buff_len);
 
@@ -110,7 +76,7 @@ void spawn_worker(server *server, int new_connection_socket)
 		return;
 	}
 
-	if ((write(new_connection_socket, serialized, buff_len)) < 0)
+	if ((write(socket, serialized, buff_len)) < 0)
 	{
 		debug_print("\nerror in send request");
 		return;
@@ -118,23 +84,77 @@ void spawn_worker(server *server, int new_connection_socket)
 
 	free(serialized);
 	serialized = NULL;
+}
 
-	if (rq->type == GET)
+request *receive_request(int socket)
+{
+	char buf[BUFFER_LENGTH];
+	memset(buf, 0, BUFFER_LENGTH);
+
+	if ((read(socket, buf, BUFFER_LENGTH)) == -1)
 	{
-		free(rq->rq_data.get_rq.key);
-		rq->rq_data.get_rq.key = NULL;
+		debug_print("\ninvalid read");
+		return NULL;
+	}
+
+	return deserialize_request(buf);
+}
+
+void partial_free_request(request **rq)
+{
+	if (*rq == NULL)
+		return;
+
+	if ((*rq)->type == GET)
+	{
+		free((*rq)->rq_data.get_rq.key);
+		(*rq)->rq_data.get_rq.key = NULL;
 	}
 	else
 	{
-		free(rq->rq_data.put_rq.key);
-		rq->rq_data.put_rq.key = NULL;
+		free((*rq)->rq_data.put_rq.key);
+		(*rq)->rq_data.put_rq.key = NULL;
 	}
-	free(rq);
-	rq = NULL;
+
+	free(*rq);
+	*rq = NULL;
+}
+
+void worker_func(server *server, int new_connection_socket)
+{
+	if (server == NULL)
+		return;
+
+	request *rq = receive_request(new_connection_socket);
+
+	if (rq == NULL)
+	{
+		debug_print("\ngot null request");
+		return;
+	}
+
+	response *response = handle_request(server, rq);
+
+	if (response == NULL)
+	{
+		debug_print("\ngot null response");
+		return;
+	}
+
+	write_response(new_connection_socket, response);
+
+	partial_free_request(&rq);
+
 	free(response);
 	response = NULL;
+}
 
-	// worker_func();
+void spawn_worker(server *server, int new_connection_socket)
+{
+	// implement a queue with jobs for worker threads
+	// and the logic to allocate a job to a worker thread
+
+	worker_func(server, new_connection_socket);
 }
 
 void run(server *server)
@@ -193,6 +213,9 @@ void free_server(server **server)
 
 response *handle_put(server *server, request *request)
 {
+	if (server == NULL || response == NULL)
+		return NULL;
+
 	put_item(server->store, request->rq_data.put_rq.item, request->rq_data.put_rq.key);
 
 	return new_response(OK, request->rq_data.put_rq.item, request->type);
@@ -200,6 +223,9 @@ response *handle_put(server *server, request *request)
 
 response *handle_get(server *server, request *request)
 {
+	if (server == NULL || request == NULL)
+		return NULL;
+
 	store_item *retrieved = get_item(server->store, request->rq_data.get_rq.key);
 	// else if (request->type == LONG_LONG)
 	// retrieved = get_int(server->store, &key);
