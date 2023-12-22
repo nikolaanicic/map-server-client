@@ -11,6 +11,9 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <sys/time.h>
+#include <sys/select.h>
 #include <string.h>
 #include <unistd.h>
 #include <netinet/in.h>
@@ -24,10 +27,10 @@ typedef struct __server__
 	int server_socket;
 	key_value_store *store;
 	struct sockaddr_in server_address;
-	int enable_logging;
+	int max_backlog;
 } server;
 
-server *new_server(char *endpoint, int port, key_value_store *store, int enable_logging);
+server *new_server(char *endpoint, int port, key_value_store *store);
 void run(server *server);
 void free_server(server **server);
 

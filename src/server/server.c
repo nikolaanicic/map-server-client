@@ -1,5 +1,7 @@
 #include "../../include/server/server.h"
 
+#define _MAX_SERVER_BACKLOG_ (20)
+
 server *alloc_server()
 {
 	return (server *)malloc(sizeof(server));
@@ -9,51 +11,75 @@ volatile sig_atomic_t stop;
 
 void sigintHandler(int signum)
 {
-	printf("\nHello from a signal routine");
 	stop = 1;
 }
 
-server *new_server(char *endpoint, int port, key_value_store *store, int enable_logging)
+int setup_socket()
 {
-	if (endpoint == NULL || strcmp(endpoint, "") == 0)
+	int sck = -1, on = 1;
+
+	if ((sck = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
-		return NULL;
+		log_error("socket() retured -1");
+		return -1;
+	}
+	else if ((ioctl(sck, FIONBIO, (char *)&on) < 0))
+	{
+		log_error("ioctl() failed");
+		close(sck);
+		return -1;
+	}
+	else if (setsockopt(sck, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0)
+	{
+		log_error("setsockopt() failed");
+		close(sck);
+		return -1;
 	}
 
-	if (store == NULL)
-	{
-		return NULL;
-	}
+	return sck;
+}
 
-	int sck = socket(AF_INET, SOCK_STREAM, 0);
+void setup_address(server *server, int port)
+{
 
-	if (sck == -1)
-	{
+	if (server == NULL)
+		return;
+
+	server->server_address.sin_family = AF_INET;
+	server->server_address.sin_addr.s_addr = INADDR_ANY;
+	server->server_address.sin_port = htons(port);
+}
+
+server *new_server(char *endpoint, int port, key_value_store *store)
+{
+	if (endpoint == NULL || strcmp(endpoint, "") == 0 || store == NULL)
 		return NULL;
-	}
 
 	server *srv = alloc_server();
 
-	srv->server_socket = sck;
+	setup_address(srv, port);
+
+	if ((srv->server_socket = setup_socket()) < 0)
+	{
+		free_server(&srv);
+		return NULL;
+	}
+
+	if (bind(srv->server_socket, (struct sockaddr *)&srv->server_address, sizeof(srv->server_address)) < 0)
+	{
+		log_error("bind() failed");
+		free_server(&srv);
+		return NULL;
+	}
 
 	srv->endpoint = malloc(sizeof(char) * strlen(endpoint) + 1);
 	strcpy(srv->endpoint, endpoint);
 
 	srv->store = store;
-
-	srv->server_address.sin_family = AF_INET;
-	srv->server_address.sin_addr.s_addr = INADDR_ANY;
-	srv->server_address.sin_port = htons(port);
-	srv->enable_logging = enable_logging;
-
-	if (bind(srv->server_socket, (struct sockaddr *)&srv->server_address, sizeof(srv->server_address)) < 0)
-	{
-		free_server(&srv);
-
-		return NULL;
-	}
+	srv->max_backlog = _MAX_SERVER_BACKLOG_;
 
 	signal(SIGINT, sigintHandler);
+
 	return srv;
 }
 
@@ -154,36 +180,40 @@ void spawn_worker(server *server, int new_connection_socket)
 
 void run(server *server)
 {
-
-	if (listen(server->server_socket, 20) == -1)
-	{
+	if (listen(server->server_socket, server->max_backlog) == -1)
 		return;
-	}
 
 	socklen_t cliaddrlen = sizeof(struct sockaddr_in);
 	struct sockaddr_in cliaddr;
 	memset(&cliaddr, 0, sizeof(struct sockaddr_in));
 
+	fd_set listen_set;
+
 	log_info("server is listening (%s:%d)", server->endpoint, ntohs(server->server_address.sin_port));
 	log_info("press (CTRL+C) to stop the server");
 
-	// while (!stop)
+	while (!stop)
 	{
+		struct timeval timeout;
+		timeout.tv_sec = 10;
+		FD_ZERO(&listen_set);
+		FD_SET(server->server_socket, &listen_set);
 
-		int new_conn = accept(server->server_socket, (struct sockaddr *)&cliaddr, &cliaddrlen);
+		int rv = select(server->server_socket + 1, &listen_set, NULL, NULL, &timeout);
 
-		if (new_conn == -1)
+		if (rv < 0)
+			break;
+
+		if (FD_ISSET(server->server_socket, &listen_set))
 		{
-			// continue;
+			int new_conn = accept(server->server_socket, (struct sockaddr *)&cliaddr, &cliaddrlen);
+
+			if (new_conn == -1)
+				continue;
+
+			log_info("[ACCEPTED A CONNECTION] (%s:%d)", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
+			spawn_worker(server, new_conn);
 		}
-
-		log_info("[ACCEPTED A CONNECTION] (%s:%d)", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
-
-		// ovde treba proslediti socket/konekciju
-		// ka threadu koji ce procitati zahtev i obraditi
-		// uz pomoc jednog od handlera (put ili get)
-
-		spawn_worker(server, new_conn);
 	}
 }
 
