@@ -10,6 +10,9 @@
 #include <string.h>
 #include <time.h>
 
-void log_msg(log_level level, char *format, ...);
+void log_info(char *format, ...);
+void log_debug(char *format, ...);
+void log_warn(char *format, ...);
+void log_error(char *format, ...);
 
 #endif

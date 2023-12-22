@@ -15,7 +15,6 @@ int open_connection(client *client)
 {
 	if ((connect(client->conn, (struct sockaddr *)&client->server_addr, sizeof(client->server_addr))) < 0)
 	{
-		debug_print("\ncan't open connection");
 		return 0;
 	}
 
@@ -34,7 +33,6 @@ int send_request(client *client, request *request)
 
 	if ((write(client->conn, serialized_request, buf_len)) < 0)
 	{
-		debug_print("\nerror in send request");
 		return 0;
 	}
 
@@ -50,7 +48,6 @@ response *receive_response(client *client)
 	memset(buf, 0, BUFFER_LENGTH);
 	if ((read(client->conn, buf, BUFFER_LENGTH)) == -1)
 	{
-		debug_print("\ninvalid read");
 		return NULL;
 	}
 
@@ -62,7 +59,6 @@ client *new_client(const char *server_ip, int server_port)
 
 	if (server_ip == NULL || strcmp(server_ip, "") == 0)
 	{
-		debug_print("\ninvalid server ip");
 		return NULL;
 	}
 
@@ -76,7 +72,6 @@ client *new_client(const char *server_ip, int server_port)
 
 	if (cl->conn < 0)
 	{
-		debug_print("\ninvalid client socket");
 
 		free_client(&cl);
 		return NULL;

@@ -2,7 +2,8 @@
 #define __ARRAY_H__
 
 #include "../item/item.h"
-#include "../../debug/trace.h"
+
+#include <stdio.h>
 
 #define __DEFAULT_MAX_INDEX__ (-1)
 #define __DEFAULT_CAPACITY__ (16)

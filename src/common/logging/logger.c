@@ -1,8 +1,8 @@
 #include "../../../include/common/logging/logger.h"
 
-#define DEFAULT_LOG_SIZE (1024)
+#define DEFAULT_LOG_SIZE (2048)
 
-void log_msg(log_level level, char *format, ...)
+void log_msg(log_level level, char *buff)
 {
 	if (level == OFF)
 		return;
@@ -15,16 +15,64 @@ void log_msg(log_level level, char *format, ...)
 	time(&rawtime);
 
 	struct tm *local_time_info = localtime(&rawtime);
+	char *ltime = asctime(local_time_info);
+	ltime[strlen(ltime) - 1] = '\0';
 
-	sprintf(buffer, "\n[%s] [%s]\t", log_level_to_str(level), asctime(local_time_info));
+	sprintf(buffer, "\n[%s] [%s] %s", log_level_to_str(level), ltime, buff);
+	write(STDERR_FILENO, buffer, DEFAULT_LOG_SIZE);
+}
 
+void log_info(char *format, ...)
+{
 	va_list args;
 	va_start(args, format);
-	int l = vsnprintf(NULL, 0, format, args);
-	vsnprintf(&buffer[DEFAULT_LOG_SIZE / 2], l, format, args);
+
+	char msg[DEFAULT_LOG_SIZE / 2];
+	memset(msg, 0, DEFAULT_LOG_SIZE / 2);
+
+	int l = vsnprintf(msg, sizeof(msg), format, args);
+	log_msg(INFO, msg);
+
 	va_end(args);
+}
 
-	strcat(buffer, &buffer[DEFAULT_LOG_SIZE / 2]);
+void log_debug(char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	char msg[DEFAULT_LOG_SIZE / 2];
+	memset(msg, 0, DEFAULT_LOG_SIZE / 2);
 
-	write(STDERR_FILENO, buffer, DEFAULT_LOG_SIZE);
+	int l = vsnprintf(msg, sizeof(msg), format, args);
+	log_msg(DEBUG, msg);
+
+	va_end(args);
+}
+void log_warn(char *format, ...)
+
+{
+	va_list args;
+	va_start(args, format);
+
+	char msg[DEFAULT_LOG_SIZE / 2];
+	memset(msg, 0, DEFAULT_LOG_SIZE / 2);
+
+	int l = vsnprintf(msg, sizeof(msg), format, args);
+	log_msg(WARN, msg);
+
+	va_end(args);
+}
+
+void log_error(char *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+
+	char msg[DEFAULT_LOG_SIZE / 2];
+	memset(msg, 0, DEFAULT_LOG_SIZE / 2);
+
+	int l = vsnprintf(msg, sizeof(msg), format, args);
+	log_msg(ERROR, msg);
+
+	va_end(args);
 }

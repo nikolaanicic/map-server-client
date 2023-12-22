@@ -6,7 +6,6 @@
 #include "item_type.h"
 #include "data.h"
 #include "../key.h"
-#include "../../debug/trace.h"
 
 typedef struct __store_item__
 {

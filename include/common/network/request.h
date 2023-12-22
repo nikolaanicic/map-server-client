@@ -5,6 +5,7 @@
 #include "request_type.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 typedef struct __get_reqeust__
 {

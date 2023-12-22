@@ -3,7 +3,6 @@
 #define __SERVER_H__
 
 #include "../common/map/store/store.h"
-#include "../common/debug/trace.h"
 #include "../common/network/request.h"
 #include "../common/network/response.h"
 #include "../common/network/buffer.h"

@@ -1,7 +1,6 @@
 #ifndef __ITEM_DATA_H
 #define __ITEM_DATA_H
 
-#include "../../debug/trace.h"
 #include <stdlib.h>
 
 typedef union __item_data__

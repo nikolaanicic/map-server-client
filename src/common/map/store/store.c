@@ -47,7 +47,6 @@ void put_item_at_idx(const key_value_store *store, store_item *item, store_key k
 {
     if (key >= store->entries->capacity)
     {
-        debug_print("idx is bigger than capacity");
         return;
     }
 

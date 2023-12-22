@@ -1,7 +1,6 @@
 #ifndef __BUFFER_H__
 #define __BUFFER_H__
 
-#include "../debug/trace.h"
 #include "request.h"
 #include "response.h"
 #include "status.h"

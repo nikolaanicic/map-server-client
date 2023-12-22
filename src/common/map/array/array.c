@@ -41,7 +41,6 @@ void insert(entries *entries, store_item *item, unsigned long index)
 {
     if (entries == NULL)
     {
-        debug_print("\nthe array is NULL or the index is 0");
         return;
     }
 
@@ -50,14 +49,11 @@ void insert(entries *entries, store_item *item, unsigned long index)
         expand(entries);
         if (index >= entries->capacity)
         {
-            debug_print("\nthe array didn't expand");
             return;
         }
     }
 
     replace_or_insert(entries, item, index);
-
-    debug_print("\nitem added to the array");
 }
 
 store_item *get_at_index(const entries *entries, unsigned long index)
@@ -73,7 +69,6 @@ void free_entries(entries **entries)
 
     if (*entries == NULL)
     {
-        debug_print("\nentires is NULL");
         return;
     }
 
@@ -91,14 +86,11 @@ void print_entries(const entries *entries)
 {
     if (entries == NULL)
     {
-        debug_print("\nentries is NULL");
         return;
     }
 
     if (entries->count == 0)
     {
-        printf("\nempty entries");
-        printf("\n");
 
         return;
     }

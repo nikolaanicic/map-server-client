@@ -4,7 +4,6 @@
 #include "../item/item.h"
 #include "../key.h"
 #include "../array/array.h"
-#include "../../debug/trace.h"
 #include <string.h>
 #include <stdio.h>
 

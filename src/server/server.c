@@ -17,13 +17,11 @@ server *new_server(char *endpoint, int port, key_value_store *store, int enable_
 {
 	if (endpoint == NULL || strcmp(endpoint, "") == 0)
 	{
-		debug_print("\nserver endpoint is empty");
 		return NULL;
 	}
 
 	if (store == NULL)
 	{
-		debug_print("\npassed store is null");
 		return NULL;
 	}
 
@@ -31,7 +29,6 @@ server *new_server(char *endpoint, int port, key_value_store *store, int enable_
 
 	if (sck == -1)
 	{
-		debug_print("\nunable to create server socket");
 		return NULL;
 	}
 
@@ -52,7 +49,6 @@ server *new_server(char *endpoint, int port, key_value_store *store, int enable_
 	if (bind(srv->server_socket, (struct sockaddr *)&srv->server_address, sizeof(srv->server_address)) < 0)
 	{
 		free_server(&srv);
-		debug_print("\nunable to create server");
 
 		return NULL;
 	}
@@ -73,13 +69,11 @@ void write_response(int socket, response *response)
 
 	if (serialized == NULL)
 	{
-		debug_print("\nserialized reqeust is null");
 		return;
 	}
 
 	if ((write(socket, serialized, buff_len)) < 0)
 	{
-		debug_print("\nerror in send request");
 		return;
 	}
 
@@ -94,12 +88,10 @@ request *receive_request(int socket)
 
 	if ((read(socket, buf, BUFFER_LENGTH)) == -1)
 	{
-		debug_print("\ninvalid read");
 		return NULL;
 	}
 
-	log_msg(INFO, "received a request %d", 1);
-
+	log_info("received a request");
 	return deserialize_request(buf);
 }
 
@@ -132,7 +124,6 @@ void worker_func(server *server, int new_connection_socket)
 
 	if (rq == NULL)
 	{
-		debug_print("\ngot null request");
 		return;
 	}
 
@@ -140,7 +131,6 @@ void worker_func(server *server, int new_connection_socket)
 
 	if (response == NULL)
 	{
-		debug_print("\ngot null response");
 		return;
 	}
 
@@ -167,7 +157,6 @@ void run(server *server)
 
 	if (listen(server->server_socket, 20) == -1)
 	{
-		debug_print("\ncan't listen on a socket");
 		return;
 	}
 
@@ -175,9 +164,8 @@ void run(server *server)
 	struct sockaddr_in cliaddr;
 	memset(&cliaddr, 0, sizeof(struct sockaddr_in));
 
-	printf("\nserver is listening for connections on (%s:%d)", server->endpoint, ntohs(server->server_address.sin_port));
-	printf("\npress (CTRL+C) to stop the server");
-	fflush(stdout);
+	log_info("server is listening (%s:%d)", server->endpoint, ntohs(server->server_address.sin_port));
+	log_info("press (CTRL+C) to stop the server");
 
 	// while (!stop)
 	{
@@ -186,10 +174,10 @@ void run(server *server)
 
 		if (new_conn == -1)
 		{
-			debug_print("\ninvalid connection");
 			// continue;
 		}
-		printf("\n[ACCEPTED A CONNECTION] (%s:%d)", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
+
+		log_info("[ACCEPTED A CONNECTION] (%s:%d)", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
 
 		// ovde treba proslediti socket/konekciju
 		// ka threadu koji ce procitati zahtev i obraditi

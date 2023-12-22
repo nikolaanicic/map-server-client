@@ -52,7 +52,6 @@ request *parse_put_request(char **argv)
 
 	if (valid_item_type == 0)
 	{
-		debug_print("\ninvalid data type str");
 		return NULL;
 	}
 
@@ -60,7 +59,6 @@ request *parse_put_request(char **argv)
 
 	if (item == NULL)
 	{
-		debug_print("\ncan't parse item from cmd args");
 		return NULL;
 	}
 

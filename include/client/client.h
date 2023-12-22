@@ -6,7 +6,6 @@
 #include "../common/network/request.h"
 #include "../common/network/response.h"
 #include "../common/network/buffer.h"
-#include "../common/debug/trace.h"
 
 #include <sys/types.h>
 #include <sys/socket.h>

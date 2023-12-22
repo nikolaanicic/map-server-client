@@ -1,4 +1,5 @@
 #include "../../../../include/common/map/item/item.h"
+#include <stdio.h>
 
 store_item *new_long_long_item(long long data)
 {
@@ -24,7 +25,6 @@ store_item *new_string_item(char *data)
 {
     if (data == NULL)
     {
-        debug_print("\nitem data is NULL");
         return NULL;
     }
 
@@ -52,7 +52,6 @@ void print_item(const store_item *item)
 {
     if (item == NULL || item->data == NULL)
     {
-        debug_print("\nitem is NULL");
         return;
     }
 

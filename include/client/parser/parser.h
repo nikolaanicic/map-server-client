@@ -3,7 +3,6 @@
 
 #include "../../common/network/request_type.h"
 #include "../../common/network/request.h"
-#include "../../common/debug/trace.h"
 #include "../../common/map/item/item_type.h"
 
 #include <stdio.h>

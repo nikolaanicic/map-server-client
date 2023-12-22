@@ -11,7 +11,6 @@ int main(int argc, char **argv)
 
 	if (client == NULL)
 	{
-		debug_print("\ncan't create the client...exiting");
 		exit(EXIT_FAILURE);
 	}
 
@@ -19,7 +18,6 @@ int main(int argc, char **argv)
 
 	if (req == NULL)
 	{
-		debug_print("\nrequest is NULL");
 		exit(EXIT_FAILURE);
 	}
 
