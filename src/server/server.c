@@ -85,6 +85,9 @@ server *new_server(char *endpoint, int port, key_value_store *store)
 
 response *handle_request(server *server, request *request)
 {
+	if (server == NULL || request == NULL)
+		return NULL;
+
 	return request->type == PUT ? handle_put(server, request) : handle_get(server, request);
 }
 
@@ -149,16 +152,12 @@ void worker_func(server *server, int new_connection_socket)
 	request *rq = receive_request(new_connection_socket);
 
 	if (rq == NULL)
-	{
 		return;
-	}
 
 	response *response = handle_request(server, rq);
 
 	if (response == NULL)
-	{
 		return;
-	}
 
 	print_entries(server->store->entries);
 
@@ -168,14 +167,6 @@ void worker_func(server *server, int new_connection_socket)
 
 	free(response);
 	response = NULL;
-}
-
-void spawn_worker(server *server, int new_connection_socket)
-{
-	// implement a queue with jobs for worker threads
-	// and the logic to allocate a job to a worker thread
-
-	worker_func(server, new_connection_socket);
 }
 
 void run(server *server)
@@ -212,7 +203,7 @@ void run(server *server)
 				continue;
 
 			log_info("[ACCEPTED A CONNECTION] (%s:%d)", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
-			spawn_worker(server, new_conn);
+			worker_func(server, new_conn);
 		}
 	}
 }

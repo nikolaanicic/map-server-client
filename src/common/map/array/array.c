@@ -66,16 +66,20 @@ store_item *get_at_index(const entries *entries, unsigned long index)
 
 void free_entries(entries **entries)
 {
-
     if (*entries == NULL)
-    {
         return;
-    }
 
     for (unsigned long i = 0; i < (*entries)->capacity; i++)
-        free_store_item(&((*entries)->items[i]));
+    {
+        if ((*entries)->items[i])
+        {
+            free_store_item(&((*entries)->items[i]));
+            (*entries)->items[i] = NULL;
+        }
+    }
 
-    free((*entries)->items);
+    if ((*entries)->items)
+        free((*entries)->items);
     (*entries)->items = NULL;
 
     free(*entries);

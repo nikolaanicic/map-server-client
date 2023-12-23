@@ -7,6 +7,9 @@ key_value_store *new_key_value_store(unsigned long initial_capacity)
     store->entries = new_entries(initial_capacity);
     store->capacity = initial_capacity;
     store->count = 0;
+    store->map_lock = malloc(sizeof(pthread_mutex_t));
+
+    pthread_mutex_init(store->map_lock, NULL);
 
     return store;
 }
@@ -17,6 +20,14 @@ void free_key_value_store(key_value_store **store)
         return;
 
     free_entries(&((*store)->entries));
+    (*store)->entries = NULL;
+
+    if ((*store)->map_lock)
+        pthread_mutex_destroy((*store)->map_lock);
+
+    if ((*store)->map_lock)
+        free((*store)->map_lock);
+    (*store)->map_lock = NULL;
 
     free(*store);
     *store = NULL;
@@ -40,7 +51,13 @@ store_item *get_item(const key_value_store *store, const char *key)
 {
     store_key idx = get_idx(store, key);
 
-    return idx >= store->entries->capacity ? NULL : get_at_index(store->entries, idx);
+    pthread_mutex_lock(store->map_lock);
+
+    store_item *item = idx >= store->entries->capacity ? NULL : get_at_index(store->entries, idx);
+
+    pthread_mutex_unlock(store->map_lock);
+
+    return item;
 }
 
 void put_item_at_idx(const key_value_store *store, store_item *item, store_key key)
@@ -50,7 +67,11 @@ void put_item_at_idx(const key_value_store *store, store_item *item, store_key k
         return;
     }
 
+    pthread_mutex_lock(store->map_lock);
+
     insert(store->entries, item, key);
+
+    pthread_mutex_unlock(store->map_lock);
 }
 
 void put_item(const key_value_store *store, store_item *item, const char *key)

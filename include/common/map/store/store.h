@@ -6,6 +6,7 @@
 #include "../array/array.h"
 #include <string.h>
 #include <stdio.h>
+#include <pthread.h>
 
 typedef struct __key_value_store__
 {
@@ -13,6 +14,7 @@ typedef struct __key_value_store__
     unsigned long long capacity;
 
     entries *entries;
+    pthread_mutex_t *map_lock;
 
 } key_value_store;
 
