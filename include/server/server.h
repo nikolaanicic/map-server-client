@@ -32,6 +32,8 @@ typedef struct __server__
 
 server *new_server(char *endpoint, int port, key_value_store *store);
 void run(server *server);
+void request_handler(server *server, int new_connection_socket);
+
 void free_server(server **server);
 
 response *handle_put(server *server, request *request);

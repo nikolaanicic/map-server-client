@@ -10,5 +10,7 @@ char *status_type_to_str(status status)
 		return "NOT FOUND";
 	case CREATED:
 		return "CREATED";
+	default:
+		return "UNKNOWN";
 	}
 }

@@ -1,4 +1,5 @@
 #include "../../include/server/server.h"
+#include "../../include/server/threadpool/worker.h"
 
 #define _MAX_SERVER_BACKLOG_ (20)
 
@@ -78,8 +79,6 @@ server *new_server(char *endpoint, int port, key_value_store *store)
 	srv->store = store;
 	srv->max_backlog = _MAX_SERVER_BACKLOG_;
 
-	signal(SIGINT, sigintHandler);
-
 	return srv;
 }
 
@@ -97,14 +96,10 @@ void write_response(int socket, response *response)
 	char *serialized = serialize_response(response, &buff_len);
 
 	if (serialized == NULL)
-	{
 		return;
-	}
 
 	if ((write(socket, serialized, buff_len)) < 0)
-	{
 		return;
-	}
 
 	free(serialized);
 	serialized = NULL;
@@ -120,7 +115,6 @@ request *receive_request(int socket)
 		return NULL;
 	}
 
-	log_info("received a request");
 	return deserialize_request(buf);
 }
 
@@ -144,7 +138,7 @@ void partial_free_request(request **rq)
 	*rq = NULL;
 }
 
-void worker_func(server *server, int new_connection_socket)
+void request_handler(server *server, int new_connection_socket)
 {
 	if (server == NULL)
 		return;
@@ -158,8 +152,6 @@ void worker_func(server *server, int new_connection_socket)
 
 	if (response == NULL)
 		return;
-
-	print_entries(server->store->entries);
 
 	write_response(new_connection_socket, response);
 
@@ -180,6 +172,8 @@ void run(server *server)
 
 	fd_set listen_set;
 
+	signal(SIGINT, sigintHandler);
+
 	log_info("server is listening (%s:%d)", server->endpoint, ntohs(server->server_address.sin_port));
 	log_info("press (CTRL+C) to stop the server");
 
@@ -187,6 +181,7 @@ void run(server *server)
 	{
 		struct timeval timeout;
 		timeout.tv_sec = 10;
+
 		FD_ZERO(&listen_set);
 		FD_SET(server->server_socket, &listen_set);
 
@@ -203,7 +198,7 @@ void run(server *server)
 				continue;
 
 			log_info("[ACCEPTED A CONNECTION] (%s:%d)", inet_ntoa(cliaddr.sin_addr), ntohs(cliaddr.sin_port));
-			worker_func(server, new_conn);
+			spawn_worker_thread(server, new_conn);
 		}
 	}
 }

@@ -3,6 +3,6 @@
 
 #include "worker_args.h"
 
-void *worker_func(void *input);
+void spawn_worker_thread(server *server, int connection);
 
 #endif

@@ -33,11 +33,15 @@ response *parse_response_from_buffer(const void *buffer)
 
 void print_response(response *response)
 {
+
+	if (response == NULL)
+		return;
+
 	printf("\n-----RESPONSE-----");
 	printf("\n\tTYPE: %s", request_type_to_str(response->request_type));
 	printf("\n\tSTATUS: %s", status_type_to_str(response->status));
 
-	if (response->request_type == GET)
+	if (response->request_type == GET && response->status == OK && response->item)
 	{
 		printf("\n\tDATA: ");
 		print_item(response->item);
