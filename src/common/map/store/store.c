@@ -63,9 +63,7 @@ store_item *get_item(const key_value_store *store, const char *key)
 void put_item_at_idx(const key_value_store *store, store_item *item, store_key key)
 {
     if (key >= store->entries->capacity)
-    {
         return;
-    }
 
     pthread_mutex_lock(store->map_lock);
 

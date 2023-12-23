@@ -111,9 +111,7 @@ request *receive_request(int socket)
 	memset(buf, 0, BUFFER_LENGTH);
 
 	if ((read(socket, buf, BUFFER_LENGTH)) == -1)
-	{
 		return NULL;
-	}
 
 	return deserialize_request(buf);
 }
@@ -236,8 +234,7 @@ response *handle_get(server *server, request *request)
 		return NULL;
 
 	store_item *retrieved = get_item(server->store, request->rq_data.get_rq.key);
-	// else if (request->type == LONG_LONG)
-	// retrieved = get_int(server->store, &key);
+
 	status status = NOT_FOUND;
 
 	if (retrieved)

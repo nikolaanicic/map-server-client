@@ -14,9 +14,7 @@ void free_client(client **client)
 int open_connection(client *client)
 {
 	if ((connect(client->conn, (struct sockaddr *)&client->server_addr, sizeof(client->server_addr))) < 0)
-	{
 		return 0;
-	}
 
 	return 1;
 }
@@ -32,9 +30,7 @@ int send_request(client *client, request *request)
 	print_request(request);
 
 	if ((write(client->conn, serialized_request, buf_len)) < 0)
-	{
 		return 0;
-	}
 
 	free(serialized_request);
 	serialized_request = NULL;
@@ -47,20 +43,15 @@ response *receive_response(client *client)
 	char buf[BUFFER_LENGTH];
 	memset(buf, 0, BUFFER_LENGTH);
 	if ((read(client->conn, buf, BUFFER_LENGTH)) == -1)
-	{
 		return NULL;
-	}
 
 	return deserialize_response(buf);
 }
 
 client *new_client(const char *server_ip, int server_port)
 {
-
 	if (server_ip == NULL || strcmp(server_ip, "") == 0)
-	{
 		return NULL;
-	}
 
 	client *cl = (client *)malloc(sizeof(client));
 
@@ -72,7 +63,6 @@ client *new_client(const char *server_ip, int server_port)
 
 	if (cl->conn < 0)
 	{
-
 		free_client(&cl);
 		return NULL;
 	}

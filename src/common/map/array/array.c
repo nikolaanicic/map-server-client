@@ -40,17 +40,14 @@ void replace_or_insert(entries *entries, store_item *item, unsigned long index)
 void insert(entries *entries, store_item *item, unsigned long index)
 {
     if (entries == NULL)
-    {
         return;
-    }
 
     if (index >= entries->capacity)
     {
         expand(entries);
+
         if (index >= entries->capacity)
-        {
             return;
-        }
     }
 
     replace_or_insert(entries, item, index);
@@ -80,6 +77,7 @@ void free_entries(entries **entries)
 
     if ((*entries)->items)
         free((*entries)->items);
+
     (*entries)->items = NULL;
 
     free(*entries);
@@ -88,16 +86,8 @@ void free_entries(entries **entries)
 
 void print_entries(const entries *entries)
 {
-    if (entries == NULL)
-    {
+    if (entries == NULL || entries->count == 0)
         return;
-    }
-
-    if (entries->count == 0)
-    {
-
-        return;
-    }
 
     for (unsigned long i = 0; i < entries->capacity; i++)
         print_item(entries->items[i]);
